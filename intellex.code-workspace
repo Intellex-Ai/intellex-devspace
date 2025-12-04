@@ -1,0 +1,11 @@
+{
+    "folders": [
+        {
+            "path": "repos/intellex-web"
+        },
+        {
+            "path": "repos/intellex-api"
+        }
+    ],
+    "settings": {}
+}
