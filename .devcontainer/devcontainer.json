@@ -1,0 +1,40 @@
+{
+  "name": "Intellex Multi-Repo Devspace",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "pnpm": "latest"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "postCreateCommand": "bash scripts/setup.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.vscode-github-actions",
+        "mhutchie.git-graph",
+        "streetsidesoftware.code-spell-checker",
+        "ms-python.python"
+      ]
+    }
+  },
+
+  "remoteUser": "codespace",
+  "updateContentCommand": "bash scripts/update-repos.sh"
+}

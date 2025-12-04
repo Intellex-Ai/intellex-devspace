@@ -1,0 +1,9 @@
+# Prevent multi-repo checkouts from being committed
+workspaces/
+
+# Temp/system files
+.DS_Store
+node_modules/
+dist/
+.env
+.env.*
