@@ -1,12 +1,7 @@
 {
-  "name": "Intellex Multi-Repo Devspace",
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "hostRequirements": {
-    "cpus": 4,
-    "memory": "8gb",
-    "storage": "32gb"
-  },
-
+  "name": "Intellex DevContainer",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "remoteUser": "vscode",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20",
@@ -17,24 +12,17 @@
     },
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-
-  "postCreateCommand": "bash scripts/setup.sh",
-
   "customizations": {
     "vscode": {
       "extensions": [
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "GitHub.copilot",
-        "GitHub.copilot-chat",
-        "GitHub.vscode-github-actions",
         "mhutchie.git-graph",
-        "streetsidesoftware.code-spell-checker",
         "ms-python.python"
       ]
     }
   },
-
-  "remoteUser": "codespace",
-  "updateContentCommand": "bash scripts/update-repos.sh"
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+  "postStartCommand": "bash /workspace/.devcontainer/setup.sh"
 }
