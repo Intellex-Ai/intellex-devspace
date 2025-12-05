@@ -22,9 +22,13 @@ echo "🚀 Starting SSH agent..."
 # Check if agent is already running
 if [ -z "$SSH_AUTH_SOCK" ]; then
   eval "$(ssh-agent -s)" > /dev/null
-  # Add to shell profile so it persists
-  echo 'eval "$(ssh-agent -s)" > /dev/null' >> ~/.bashrc
-  echo 'ssh-add ~/.ssh/id_ed25519 2>/dev/null' >> ~/.bashrc
+  # Add to shell profile so it persists (only if not already added)
+  if ! grep -q "ssh-agent" ~/.bashrc 2>/dev/null; then
+    echo '' >> ~/.bashrc
+    echo '# Auto-start SSH agent for GitHub' >> ~/.bashrc
+    echo 'eval "$(ssh-agent -s)" > /dev/null' >> ~/.bashrc
+    echo 'ssh-add ~/.ssh/id_ed25519 2>/dev/null' >> ~/.bashrc
+  fi
 fi
 
 # Add key to SSH agent if not already added
@@ -52,6 +56,14 @@ EOF
 else
   echo "✔ SSH config already configured for GitHub"
 fi
+
+# Configure git to use SSH with the key directly (works for GUI too)
+echo "⚙️  Configuring git to use SSH key..."
+# Use absolute path for SSH key to ensure it works in all contexts
+SSH_KEY_ABS=$(readlink -f "$SSH_KEY_PATH" || echo "$SSH_KEY_PATH")
+SSH_CONFIG_ABS=$(readlink -f "$SSH_CONFIG" || echo "$SSH_CONFIG")
+git config --global core.sshCommand "ssh -i '$SSH_KEY_ABS' -F '$SSH_CONFIG_ABS'"
+echo "✅ Git SSH command configured (works for GUI and CLI)"
 
 # Display public key
 echo ""
