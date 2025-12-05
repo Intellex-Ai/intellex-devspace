@@ -5,9 +5,6 @@
         },
         {
             "path": "repos/intellex-api"
-        },
-        {
-            "path": "repos/script"
         }
     ],
     "settings": {}

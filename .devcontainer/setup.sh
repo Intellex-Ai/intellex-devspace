@@ -7,8 +7,8 @@ echo "🔥 Intellex Devspace Setup Starting..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/setup-github-ssh.sh" || true
 
-mkdir -p /workspace/repos
-cd /workspace/repos
+mkdir -p /workspaces/intellex-devspace/repos
+cd /workspaces/intellex-devspace/repos
 
 REPOS=(
   "https://github.com/Intellex-Ai/intellex-web.git"
