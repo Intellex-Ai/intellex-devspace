@@ -3,6 +3,15 @@ set -e
 
 echo "🔑 Setting up GitHub SSH authentication..."
 
+# Detect environment
+if [ -n "$CODESPACES" ] || [ -n "$GITHUB_CODESPACE_TOKEN" ]; then
+  echo "📍 Detected GitHub Codespaces environment"
+  IN_CODESPACES=true
+else
+  echo "📍 Detected local devcontainer environment"
+  IN_CODESPACES=false
+fi
+
 # Ensure .ssh directory exists
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
@@ -17,18 +26,22 @@ else
   echo "✔ SSH key already exists at $SSH_KEY_PATH"
 fi
 
-# Start SSH agent and add key
-echo "🚀 Starting SSH agent..."
-# Check if agent is already running
-if [ -z "$SSH_AUTH_SOCK" ]; then
-  eval "$(ssh-agent -s)" > /dev/null
-  # Add to shell profile so it persists (only if not already added)
-  if ! grep -q "ssh-agent" ~/.bashrc 2>/dev/null; then
-    echo '' >> ~/.bashrc
-    echo '# Auto-start SSH agent for GitHub' >> ~/.bashrc
-    echo 'eval "$(ssh-agent -s)" > /dev/null' >> ~/.bashrc
-    echo 'ssh-add ~/.ssh/id_ed25519 2>/dev/null' >> ~/.bashrc
+# Start SSH agent and add key (only needed for local devcontainers)
+if [ "$IN_CODESPACES" = false ]; then
+  echo "🚀 Starting SSH agent..."
+  # Check if agent is already running
+  if [ -z "$SSH_AUTH_SOCK" ]; then
+    eval "$(ssh-agent -s)" > /dev/null
+    # Add to shell profile so it persists (only if not already added)
+    if ! grep -q "ssh-agent" ~/.bashrc 2>/dev/null; then
+      echo '' >> ~/.bashrc
+      echo '# Auto-start SSH agent for GitHub' >> ~/.bashrc
+      echo 'eval "$(ssh-agent -s)" > /dev/null' >> ~/.bashrc
+      echo 'ssh-add ~/.ssh/id_ed25519 2>/dev/null' >> ~/.bashrc
+    fi
   fi
+else
+  echo "✔ Codespaces handles SSH agent automatically"
 fi
 
 # Add key to SSH agent if not already added
@@ -58,12 +71,17 @@ else
 fi
 
 # Configure git to use SSH with the key directly (works for GUI too)
-echo "⚙️  Configuring git to use SSH key..."
-# Use absolute path for SSH key to ensure it works in all contexts
-SSH_KEY_ABS=$(readlink -f "$SSH_KEY_PATH" || echo "$SSH_KEY_PATH")
-SSH_CONFIG_ABS=$(readlink -f "$SSH_CONFIG" || echo "$SSH_CONFIG")
-git config --global core.sshCommand "ssh -i '$SSH_KEY_ABS' -F '$SSH_CONFIG_ABS'"
-echo "✅ Git SSH command configured (works for GUI and CLI)"
+# Skip this in Codespaces - it already handles SSH automatically
+if [ -z "$CODESPACES" ] && [ -z "$GITHUB_CODESPACE_TOKEN" ]; then
+  echo "⚙️  Configuring git to use SSH key (local devcontainer only)..."
+  # Use absolute path for SSH key to ensure it works in all contexts
+  SSH_KEY_ABS=$(readlink -f "$SSH_KEY_PATH" || echo "$SSH_KEY_PATH")
+  SSH_CONFIG_ABS=$(readlink -f "$SSH_CONFIG" || echo "$SSH_CONFIG")
+  git config --global core.sshCommand "ssh -i '$SSH_KEY_ABS' -F '$SSH_CONFIG_ABS'"
+  echo "✅ Git SSH command configured (works for GUI and CLI)"
+else
+  echo "✔ Running in Codespaces - git SSH is already configured automatically"
+fi
 
 # Display public key
 echo ""
@@ -83,8 +101,8 @@ echo ""
 
 # Test connection (will fail until key is added to GitHub, but shows the setup is working)
 echo "🧪 Testing GitHub SSH connection..."
-# Ensure agent is running for the test
-if [ -z "$SSH_AUTH_SOCK" ]; then
+# Ensure agent is running for the test (only for local devcontainers)
+if [ "$IN_CODESPACES" = false ] && [ -z "$SSH_AUTH_SOCK" ]; then
   eval "$(ssh-agent -s)" > /dev/null
   ssh-add "$SSH_KEY_PATH" 2>/dev/null
 fi
@@ -92,7 +110,12 @@ fi
 if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated\|Hi "; then
   echo "✅ GitHub SSH authentication successful!"
 else
-  echo "⚠️  GitHub SSH authentication pending - add the public key above to your GitHub account"
+  if [ "$IN_CODESPACES" = true ]; then
+    echo "⚠️  In Codespaces, git operations use automatic authentication"
+    echo "   If you need SSH access, add the public key above to your GitHub account"
+  else
+    echo "⚠️  GitHub SSH authentication pending - add the public key above to your GitHub account"
+  fi
   echo "   Public key: $(cat "$SSH_KEY_PATH.pub")"
 fi
 
