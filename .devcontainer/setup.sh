@@ -3,6 +3,10 @@ set -e
 
 echo "🔥 Intellex Devspace Setup Starting..."
 
+# Set up GitHub SSH authentication
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "$SCRIPT_DIR/setup-github-ssh.sh" || true
+
 mkdir -p /workspace/repos
 cd /workspace/repos
 
