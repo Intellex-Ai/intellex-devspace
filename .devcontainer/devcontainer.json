@@ -27,10 +27,8 @@
     "--security-opt=apparmor=unconfined"
   ],
 
-  // 🚀 Ensure passwordless sudo is configured for vscode user (runs as root after features)
-  "updateContentCommand": "echo 'vscode ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/vscode && chmod 0440 /etc/sudoers.d/vscode",
-  
   // 🚀 Run your workflow + enable SSH every time container starts
+  // Note: common-utils feature configures passwordless sudo for vscode user
   "postStartCommand": "sudo ssh-keygen -A && sudo service ssh restart && bash /workspaces/${containerWorkspaceFolderBasename}/.devcontainer/setup.sh",
 
   // ✨ VS Code extensions also apply to Cursor
