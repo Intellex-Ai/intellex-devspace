@@ -19,11 +19,17 @@ fi
 
 # Start SSH agent and add key
 echo "🚀 Starting SSH agent..."
-eval "$(ssh-agent -s)" > /dev/null
+# Check if agent is already running
+if [ -z "$SSH_AUTH_SOCK" ]; then
+  eval "$(ssh-agent -s)" > /dev/null
+  # Add to shell profile so it persists
+  echo 'eval "$(ssh-agent -s)" > /dev/null' >> ~/.bashrc
+  echo 'ssh-add ~/.ssh/id_ed25519 2>/dev/null' >> ~/.bashrc
+fi
 
 # Add key to SSH agent if not already added
-if ! ssh-add -l | grep -q "$SSH_KEY_PATH"; then
-  ssh-add "$SSH_KEY_PATH"
+if ! ssh-add -l 2>/dev/null | grep -q "$SSH_KEY_PATH"; then
+  ssh-add "$SSH_KEY_PATH" 2>/dev/null
   echo "✅ SSH key added to agent"
 else
   echo "✔ SSH key already in agent"
@@ -65,9 +71,16 @@ echo ""
 
 # Test connection (will fail until key is added to GitHub, but shows the setup is working)
 echo "🧪 Testing GitHub SSH connection..."
-if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+# Ensure agent is running for the test
+if [ -z "$SSH_AUTH_SOCK" ]; then
+  eval "$(ssh-agent -s)" > /dev/null
+  ssh-add "$SSH_KEY_PATH" 2>/dev/null
+fi
+
+if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated\|Hi "; then
   echo "✅ GitHub SSH authentication successful!"
 else
   echo "⚠️  GitHub SSH authentication pending - add the public key above to your GitHub account"
+  echo "   Public key: $(cat "$SSH_KEY_PATH.pub")"
 fi
 
