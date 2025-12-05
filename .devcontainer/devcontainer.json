@@ -1,20 +1,39 @@
 {
-  "name": "Intellex DevContainer",
+  "name": "Intellex Devspace",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
   "remoteUser": "vscode",
+
+  // 🧰 ALL your tools here
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20",
       "pnpm": "latest"
     },
-    "ghcr.io/devcontainers/features/sshd:1": {
-      "version": "latest"
-    },
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
     },
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    
+    // 🔐 SSHD FEATURE — REQUIRED FOR CURSOR
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
   },
+
+  // 🛑 Codespaces containers block services unless permissions added
+  "runArgs": [
+    "--cap-add=SYS_ADMIN",
+    "--security-opt=apparmor=unconfined"
+  ],
+
+  // 🚀 Ensure passwordless sudo is configured for vscode user (runs as root after features)
+  "updateContentCommand": "echo 'vscode ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/vscode && chmod 0440 /etc/sudoers.d/vscode",
+  
+  // 🚀 Run your workflow + enable SSH every time container starts
+  "postStartCommand": "sudo ssh-keygen -A && sudo service ssh restart && bash /workspaces/${containerWorkspaceFolderBasename}/.devcontainer/setup.sh",
+
+  // ✨ VS Code extensions also apply to Cursor
   "customizations": {
     "vscode": {
       "extensions": [
@@ -24,6 +43,5 @@
         "ms-python.python"
       ]
     }
-  },
-  "postStartCommand": "bash /workspaces/${containerWorkspaceFolderBasename}/.devcontainer/setup.sh"
+  }
 }
