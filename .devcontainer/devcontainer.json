@@ -7,6 +7,9 @@
       "version": "20",
       "pnpm": "latest"
     },
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    },
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
     },
@@ -22,7 +25,5 @@
       ]
     }
   },
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
-  "workspaceFolder": "/workspace",
-  "postStartCommand": "bash /workspace/.devcontainer/setup.sh"
+  "postStartCommand": "bash /workspaces/${containerWorkspaceFolderBasename}/.devcontainer/setup.sh"
 }
